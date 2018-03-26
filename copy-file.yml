@@ -1,0 +1,50 @@
+- name: My playbook for server prepare
+  hosts: server188:!ibd87:!ibd140:!ibd124:!ibd129
+  vars:
+    data_disks:
+      - device: /dev/sdb
+        path: /mnt/data01
+      - device: /dev/sdc
+        path: /mnt/data02
+      - device: /dev/sdd
+        path: /mnt/data03
+      - device: /dev/sde
+        path: /mnt/data04
+      - device: /dev/sdf
+        path: /mnt/data05
+      - device: /dev/sdg
+        path: /mnt/data06
+      - device: /dev/sdh
+        path: /mnt/data07
+      - device: /dev/sdi
+        path: /mnt/data08
+      - device: /dev/sdj
+        path: /mnt/data09
+      - device: /dev/sdk
+        path: /mnt/data10
+      - device: /dev/sdl
+        path: /mnt/data11
+      - device: /dev/sdm
+        path: /mnt/data12
+  tasks:
+        #    - name: change hosts
+        #      copy:
+        #        src: files/hosts
+        #        dest: /etc/transwarp/conf/hosts
+        #        owner: root
+        #        group: root
+        #        mode: 0644
+    - name: add snapshot parent directory
+      file:
+        path: "{{ item.path }}/snapshot"
+        state: directory
+        mode: 0777
+      with_items: "{{ data_disks }}"
+    - name: hard link snapshot parent directory in yarn container
+      mount:
+        src: "{{ item.path }}/snapshot"
+        path: "/transwarp/mounts/yarn1{{ item.path }}/snapshot"
+        opts: bind
+        fstype: xfs
+        state: mounted
+      with_items: "{{ data_disks }}"

@@ -1,0 +1,8 @@
+[all:vars]
+ansible_ssh_pass=rootdzwl
+
+[server188]
+ibd[68:75]
+ibd[84:99]
+ibd[124:147]
+#ibd[146:147]

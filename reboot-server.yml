@@ -1,0 +1,8 @@
+- name: reboot server playbook
+  hosts: server188:!ibd87:!ibd140:!ibd124:!ibd129:!ibd99
+  tasks:
+    - name: reboot server
+      command: /sbin/shutdown -r +1
+      async: 0
+      poll: 0
+      ignore_errors: true

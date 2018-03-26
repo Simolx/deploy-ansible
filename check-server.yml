@@ -1,0 +1,23 @@
+- name: My playbook test
+  hosts: server188:!ibd87:!ibd140:!ibd124:!ibd129:!ibd99
+  tasks:
+    - name: show hostname
+      debug:
+              #var: "{{ ansible_hostname }}"
+        var: ansible_hostname
+    - name: show bond0 speed
+      debug:
+        var: ansible_bond0.speed
+    - name: get firewalld status
+      command: systemctl status firewalld
+      register: firewalldst
+      ignore_errors: yes
+    - name: show firewalld status
+      debug:
+        var: firewalldst.stdout_lines
+    - name: get selinux status
+      command: getenforce
+      register: selinuxst
+    - name: show selinux status
+      debug: 
+        var: selinuxst.stdout

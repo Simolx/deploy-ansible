@@ -1,0 +1,91 @@
+- name: My playbook for server prepare
+  hosts: server188:!ibd87:!ibd140:!ibd124:!ibd129
+  vars:
+    docker_lvg_size: 165884723200B
+    data_disks:
+      - device: /dev/sdb
+        path: /mnt/data01
+      - device: /dev/sdc
+        path: /mnt/data02
+      - device: /dev/sdd
+        path: /mnt/data03
+      - device: /dev/sde
+        path: /mnt/data04
+      - device: /dev/sdf
+        path: /mnt/data05
+      - device: /dev/sdg
+        path: /mnt/data06
+      - device: /dev/sdh
+        path: /mnt/data07
+      - device: /dev/sdi
+        path: /mnt/data08
+      - device: /dev/sdj
+        path: /mnt/data09
+      - device: /dev/sdk
+        path: /mnt/data10
+      - device: /dev/sdl
+        path: /mnt/data11
+      - device: /dev/sdm
+        path: /mnt/data12
+  tasks:
+    - name: change hostname
+      template:
+        src: templates/hostname.j2
+        dest: /etc/hostname
+        owner: root
+        group: root
+        mode: 0644
+    - name: stop firewalld
+      service:
+        name: firewalld
+        state: stopped
+    - name: disable firewalld
+      service:
+        name: firewalld
+        enabled: no
+    - name: disable selinux
+      selinux:
+        state: disabled
+    - name: disable ens4f1 interface
+      cron:
+        name: "disable ens4f1 interface for reboot"
+        special_time: reboot
+        job: "/usr/sbin/ifconfig ens4f1 down"
+    - name: remove disk part
+      parted:
+        device: "{{ item.device }}"
+        number: 1
+        state: absent
+      with_items: "{{ data_disks }}"
+    - name: parted disk
+      parted:
+        device: "{{ item.device }}"
+        state: present
+        number: 1
+        label: gpt
+      with_items: "{{ data_disks }}"
+    - name: mkfs disk
+      filesystem:
+        fstype: xfs
+        dev: "{{ item.device }}1"
+        force: yes
+      with_items: "{{ data_disks }}"
+    - name: mount data disk
+      mount:
+        path: "{{ item.path }}"
+        src: "{{ item.device }}1"
+        fstype: xfs
+        opts: defaults,noatime
+        state: mounted
+      with_items: "{{ data_disks }}"
+    - name: extend system disk part
+      parted:
+        device: /dev/sda
+        number: 3
+        state: present
+        part_start: "{{ docker_lvg_size }}"
+    - name: create lvg for docker
+      lvg:
+        vg: docker
+        pvs: /dev/sda3
+  
